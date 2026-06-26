@@ -27,11 +27,25 @@
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8">
         
-        <div id="statusBanner" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-8 shadow-sm flex items-start gap-3 transition-all">
+        <div id="statusBanner" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-6 shadow-sm flex items-start gap-3 transition-all">
             <i id="statusIcon" data-lucide="refresh-cw" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 animate-spin"></i>
             <p id="statusText" class="text-sm text-blue-700 font-medium">
                 Leyendo y procesando el archivo 'pacientes.xlsx' en tiempo real... Por favor espere.
             </p>
+        </div>
+
+        <!-- NOTA DE EXENCIÓN DE RESPONSABILIDAD / LIMITACIÓN DE DATOS -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl mb-8 shadow-sm flex items-start gap-3">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
+            <div class="text-sm text-amber-800 space-y-1">
+                <p class="font-bold uppercase tracking-wide text-xs text-amber-950">Aviso Importante de Protección de Datos</p>
+                <p class="leading-relaxed">
+                    Esta plataforma se alimenta exclusivamente de reportes y listados colaborativos consolidados por la comunidad, por lo que <strong>puede contener errores, duplicados u omisiones involuntarias</strong>. 
+                </p>
+                <p class="leading-relaxed font-medium">
+                    El sistema tiene como único propósito indicar el centro hospitalario u organismo donde fue registrada la persona. <strong>No incluye, bajo ninguna circunstancia, expedientes, diagnósticos ni datos médicos privados.</strong>
+                </p>
+            </div>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 mb-8">
@@ -68,7 +82,7 @@
         </div>
 
         <div id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            </div>
+        </div>
 
         <div id="noResults" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 max-w-md mx-auto mt-8">
             <i data-lucide="user-x" class="w-12 h-12 text-slate-400 mx-auto mb-3"></i>
@@ -86,12 +100,10 @@
     </footer>
 
     <script>
-        // CONFIGURACIÓN: Nombre exacto de tu archivo Excel en la raíz del repositorio
         const EXCEL_FILE_PATH = "pacientes.xlsx"; 
 
         let BASE_DATOS_PACIENTES = [];
 
-        // Captura de nodos del DOM
         const searchInput = document.getElementById('searchInput');
         const hospitalFilter = document.getElementById('hospitalFilter');
         const resultsGrid = document.getElementById('resultsGrid');
@@ -102,13 +114,11 @@
         const statusIcon = document.getElementById('statusIcon');
         const dbBadge = document.getElementById('dbBadge');
 
-        // Inicializar iconos de interfaz
         lucide.createIcons();
 
         document.addEventListener('DOMContentLoaded', cargarExcelRemoto);
 
         function cargarExcelRemoto() {
-            // Fetch lee el archivo binario completo .xlsx
             fetch(EXCEL_FILE_PATH)
                 .then(response => {
                     if (!response.ok) {
@@ -117,19 +127,11 @@
                     return response.arrayBuffer();
                 })
                 .then(buffer => {
-                    // SheetJS decodifica la estructura interna del archivo Excel (.xlsx)
                     const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
-                    
-                    // IMPORTANTE: Buscamos la pestaña que consolida todo. 
-                    // Si existe la pestaña "🔍 BUSCAR PACIENTES", la usamos; si no, toma la primera pestaña.
                     const targetSheetName = workbook.SheetNames.find(name => name.includes("BUSCAR")) || workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[targetSheetName];
-                    
-                    // Convertir a JSON mapeando los encabezados. 
-                    // range: 2 le dice a SheetJS que empiece a leer desde la fila 3 (donde están los encabezados reales de tus datos)
                     const filasRaw = XLSX.utils.sheet_to_json(worksheet, { range: 2, defval: "" });
 
-                    // Normalizar la matriz de datos para prevenir inconsistencias de nombres de columnas
                     BASE_DATOS_PACIENTES = filasRaw.map((fila, index) => {
                         return {
                             id: index + 1,
@@ -141,9 +143,9 @@
                             direccion: fila["DIRECCIÓN"] || fila["Dirección"] || fila["Procedencia"] || "",
                             observaciones: fila["OBSERVACIONES"] || fila["Observaciones"] || ""
                         };
-                    }).filter(p => p.nombre.trim() !== ""); // Eliminar filas fantasmas vacías del Excel
+                    }).filter(p => p.nombre.trim() !== "");
 
-                    notificarExito();
+                    notxit();
                 })
                 .catch(error => {
                     console.error(error);
@@ -151,8 +153,8 @@
                 });
         }
 
-        function notificarExito() {
-            statusBanner.className = "bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl mb-8 shadow-sm flex items-start gap-3";
+        function notxit() {
+            statusBanner.className = "bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl mb-6 shadow-sm flex items-start gap-3";
             statusText.className = "text-sm text-emerald-700 font-medium";
             statusText.textContent = "Libro de Excel (.xlsx) mapeado con éxito. Búsqueda inteligente activada.";
             statusIcon.setAttribute('data-lucide', 'check-circle-2');
@@ -161,7 +163,6 @@
             dbBadge.className = "flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full";
             dbBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Excel (.xlsx) Online`;
 
-            // Desbloquear entradas de usuario
             searchInput.removeAttribute('disabled');
             searchInput.classList.replace('bg-slate-100', 'bg-slate-50');
             hospitalFilter.removeAttribute('disabled');
@@ -176,7 +177,7 @@
         }
 
         function notificarError(detalles) {
-            statusBanner.className = "bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl mb-8 shadow-sm flex items-start gap-3";
+            statusBanner.className = "bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl mb-6 shadow-sm flex items-start gap-3";
             statusText.className = "text-sm text-red-700 font-semibold";
             statusText.innerHTML = `Error de Sincronización: No se lee el Excel.<br><span class="text-xs font-normal text-red-600">Solución: Verifica que subiste tu archivo de Excel con el nombre en minúsculas exacto de <strong>pacientes.xlsx</strong> a tu repositorio GitHub junto a este index.html.</span>`;
             statusIcon.setAttribute('data-lucide', 'x-circle');
