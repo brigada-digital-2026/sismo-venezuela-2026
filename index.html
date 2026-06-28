@@ -6,7 +6,6 @@
     <title>Localizador de Personas - Emergencia Sismo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
@@ -16,11 +15,11 @@
                 <i data-lucide="shield-alert" class="w-8 h-8 text-white animate-pulse"></i>
                 <div>
                     <h1 class="text-xl sm:text-2xl font-black tracking-tight">SISMO VENEZUELA 2026</h1>
-                    <p class="text-xs sm:text-sm text-red-100 font-medium">Buscador y Localizador Automatizado de Pacientes</p>
+                    <p class="text-xs sm:text-sm text-red-100 font-medium">Buscador unificado de ciudadanos en centros asistenciales y refugios</p>
                 </div>
             </div>
             <div class="bg-red-700 text-red-100 text-xs sm:text-sm px-4 py-2 rounded-lg font-mono border border-red-500/30 text-center">
-                Lectura Directa: pacientes.xlsx
+                Registro Consolidado JSON
             </div>
         </div>
     </header>
@@ -30,7 +29,7 @@
         <div id="statusBanner" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-6 shadow-sm flex items-start gap-3 transition-all">
             <i id="statusIcon" data-lucide="refresh-cw" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 animate-spin"></i>
             <p id="statusText" class="text-sm text-blue-700 font-medium">
-                Leyendo y procesando el archivo 'pacientes.xlsx' en tiempo real... Por favor espere.
+                Sincronizando base de datos central de 3.688 personas en tiempo real... Por favor espere.
             </p>
         </div>
 
@@ -55,14 +54,14 @@
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Buscar Familiar</label>
                     <div class="relative">
                         <input type="text" id="searchInput" disabled
-                               placeholder="Escriba nombres, apellidos o número de cédula..." 
+                               placeholder="Escriba nombres, apellidos, número de cédula..." 
                                class="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50">
                         <i data-lucide="search" class="absolute left-4 top-3.5 text-slate-400 w-5 h-5"></i>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Centro Hospitalario</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Centro Hospitalario / Refugio</label>
                     <div class="relative">
                         <select id="hospitalFilter" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-base appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50">
                             <option value="">Cargando centros...</option>
@@ -76,7 +75,7 @@
             <div class="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 font-medium pt-4 border-t border-slate-100">
                 <span id="counter">Inicializando base de datos...</span>
                 <span id="dbBadge" class="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Leyendo binario (.xlsx)
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Leyendo JSON optimizado
                 </span>
             </div>
         </div>
@@ -87,7 +86,7 @@
         <div id="noResults" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 max-w-md mx-auto mt-8">
             <i data-lucide="user-x" class="w-12 h-12 text-slate-400 mx-auto mb-3"></i>
             <h3 class="text-lg font-bold text-slate-700">Sin resultados hallados</h3>
-            <p class="text-sm text-slate-500 px-6 mt-1">Pruebe buscando únicamente el apellido o el número de cédula sin puntos.</p>
+            <p class="text-sm text-slate-500 px-6 mt-1">Pruebe buscando únicamente un apellido o el número de cédula sin letras ni puntos.</p>
         </div>
 
     </main>
@@ -95,12 +94,12 @@
     <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-xs sm:text-sm mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center space-y-1">
             <p class="font-semibold text-slate-300">Infraestructura Tecnológica de Contingencia Civil.</p>
-            <p>Los datos se analizan dinámicamente desde el archivo maestro provisto por los organismos de salud.</p>
+            <p>Los datos se analizan dinámicamente desde la matriz JSON distribuida de forma asíncrona.</p>
         </div>
     </footer>
 
     <script>
-        const EXCEL_FILE_PATH = "pacientes.xlsx"; 
+        const JSON_FILE_PATH = `pacientes.json?v=${new Date().getTime()}`; 
 
         let BASE_DATOS_PACIENTES = [];
 
@@ -116,36 +115,19 @@
 
         lucide.createIcons();
 
-        document.addEventListener('DOMContentLoaded', cargarExcelRemoto);
+        document.addEventListener('DOMContentLoaded', cargarJsonRemoto);
 
-        function cargarExcelRemoto() {
-            fetch(EXCEL_FILE_PATH)
+        function cargarJsonRemoto() {
+            fetch(JSON_FILE_PATH)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('No se pudo encontrar el archivo "' + EXCEL_FILE_PATH + '" en el repositorio público.');
+                        throw new Error('No se pudo encontrar el archivo "pacientes.json" en el repositorio.');
                     }
-                    return response.arrayBuffer();
+                    return response.json();
                 })
-                .then(buffer => {
-                    const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
-                    const targetSheetName = workbook.SheetNames.find(name => name.includes("BUSCAR")) || workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[targetSheetName];
-                    const filasRaw = XLSX.utils.sheet_to_json(worksheet, { range: 2, defval: "" });
-
-                    BASE_DATOS_PACIENTES = filasRaw.map((fila, index) => {
-                        return {
-                            id: index + 1,
-                            hospital: fila["HOSPITAL"] || fila["Hospital"] || "No Registrado",
-                            nombre: fila["APELLIDOS Y NOMBRES"] || fila["Nombre"] || "",
-                            edad: fila["EDAD"] || fila["Edad"] || "",
-                            cedula: String(fila["CÉDULA / ID"] || fila["Cédula"] || fila["Cedula"] || "").trim(),
-                            telefono: fila["TELÉFONO"] || fila["Teléfono"] || fila["Telefono"] || "",
-                            direccion: fila["DIRECCIÓN"] || fila["Dirección"] || fila["Procedencia"] || "",
-                            observaciones: fila["OBSERVACIONES"] || fila["Observaciones"] || ""
-                        };
-                    }).filter(p => p.nombre.trim() !== "");
-
-                    notxit();
+                .then(datos => {
+                    BASE_DATOS_PACIENTES = datos;
+                    notificarExito();
                 })
                 .catch(error => {
                     console.error(error);
@@ -153,15 +135,15 @@
                 });
         }
 
-        function notxit() {
+        function notificarExito() {
             statusBanner.className = "bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl mb-6 shadow-sm flex items-start gap-3";
             statusText.className = "text-sm text-emerald-700 font-medium";
-            statusText.textContent = "Libro de Excel (.xlsx) mapeado con éxito. Búsqueda inteligente activada.";
+            statusText.textContent = "Base de datos unificada sincronizada con éxito. Buscador activado.";
             statusIcon.setAttribute('data-lucide', 'check-circle-2');
             statusIcon.className = "w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5";
             
             dbBadge.className = "flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full";
-            dbBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Excel (.xlsx) Online`;
+            dbBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> JSON Sincronizado`;
 
             searchInput.removeAttribute('disabled');
             searchInput.classList.replace('bg-slate-100', 'bg-slate-50');
@@ -179,7 +161,7 @@
         function notificarError(detalles) {
             statusBanner.className = "bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl mb-6 shadow-sm flex items-start gap-3";
             statusText.className = "text-sm text-red-700 font-semibold";
-            statusText.innerHTML = `Error de Sincronización: No se lee el Excel.<br><span class="text-xs font-normal text-red-600">Solución: Verifica que subiste tu archivo de Excel con el nombre en minúsculas exacto de <strong>pacientes.xlsx</strong> a tu repositorio GitHub junto a este index.html.</span>`;
+            statusText.innerHTML = `Error de Sincronización: No se lee el JSON.<br><span class="text-xs font-normal text-red-600">Solución: Verifica que subiste tu archivo <strong>pacientes.json</strong> a tu repositorio GitHub junto a este index.html.</span>`;
             statusIcon.setAttribute('data-lucide', 'x-circle');
             statusIcon.className = "w-5 h-5 text-red-600 flex-shrink-0 mt-0.5";
             counter.textContent = "Error al inicializar datos.";
@@ -188,7 +170,7 @@
 
         function poblarHospitales() {
             const hospitales = [...new Set(BASE_DATOS_PACIENTES.map(p => p.hospital))].sort();
-            hospitalFilter.innerHTML = '<option value="">Todos los centros de salud</option>';
+            hospitalFilter.innerHTML = '<option value="">Todos los centros / refugios</option>';
             hospitales.forEach(h => {
                 if(h && h.trim() !== "") {
                     const option = document.createElement('option');
@@ -206,7 +188,8 @@
             const resultados = BASE_DATOS_PACIENTES.filter(paciente => {
                 const matchTexto = paciente.nombre.toLowerCase().includes(query) || 
                                    paciente.cedula.includes(query) ||
-                                   paciente.direccion.toLowerCase().includes(query);
+                                   paciente.procedencia.toLowerCase().includes(query) ||
+                                   paciente.comentarios.toLowerCase().includes(query);
                 
                 const matchHospital = hospitalSeleccionado === "" || paciente.hospital === hospitalSeleccionado;
                 return matchTexto && matchHospital;
@@ -217,7 +200,7 @@
 
         function renderizarPacientes(lista) {
             resultsGrid.innerHTML = '';
-            counter.textContent = `Mostrando ${lista.length} de ${BASE_DATOS_PACIENTES.length} registros oficiales`;
+            counter.textContent = `Mostrando ${lista.length} de ${BASE_DATOS_PACIENTES.length} registros consolidados`;
 
             if (lista.length === 0) {
                 noResults.classList.remove('hidden');
@@ -225,47 +208,57 @@
             }
             noResults.classList.add('hidden');
 
-            lista.forEach(paciente => {
+            // Renderizamos un fragmento controlado para no saturar el DOM del móvil con 3600 elementos de golpe
+            const itemsAMostrar = lista.slice(0, 150);
+            if (lista.length > 150) {
+                counter.textContent += ` (Se muestran los primeros 150 resultados por velocidad)`;
+            }
+
+            itemsAMostrar.forEach(paciente => {
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl border border-slate-200/70 p-5 hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between";
 
-                const tieneObservacion = paciente.observaciones && paciente.observaciones.trim() !== "";
+                const tieneObservacion = paciente.comentarios && paciente.comentarios.trim() !== "";
                 const obsHTML = tieneObservacion 
                     ? `<div class="mt-4 p-3 rounded-xl text-xs font-medium bg-amber-50 border border-amber-200 text-amber-800 flex items-start gap-2">
                         <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
-                        <span>${paciente.observaciones}</span>
+                        <span>${paciente.comentarios}</span>
                        </div>`
                     : '';
 
                 card.innerHTML = `
                     <div>
                         <div class="flex justify-between items-start gap-2 mb-3">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 truncate max-w-[85%]">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 truncate max-w-[80%]">
                                 <i data-lucide="hospital" class="w-3.5 h-3.5 flex-shrink-0"></i> ${paciente.hospital}
                             </span>
-                            <span class="text-xs text-slate-400 font-mono">#${paciente.id}</span>
+                            <span class="text-xs text-slate-400 font-mono flex-shrink-0">F: ${paciente.fecha || 's/f'}</span>
                         </div>
                         
                         <h3 class="text-base font-bold text-slate-900 tracking-tight uppercase">${paciente.nombre}</h3>
                         
                         <div class="mt-3 space-y-1.5 text-sm text-slate-600">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="contact-2" class="w-4 h-4 text-slate-400"></i>
-                                <span><strong>Cédula:</strong> ${paciente.cedula || '<span class="text-slate-400 italic">No registrada</span>'}</span>
+                            <div class="grid grid-cols-2 gap-2 border-b border-slate-100 pb-1.5 text-xs font-mono text-slate-500">
+                                <div><strong>CI:</strong> ${paciente.cedula || 'N/A'}</div>
+                                <div><strong>EDAD/SEXO:</strong> ${paciente.edad || 's/e'} / ${paciente.sexo || 's/s'}</div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i>
-                                <span><strong>Edad:</strong> ${paciente.edad ? `${paciente.edad} años` : '<span class="text-slate-400 italic">No registrada</span>'}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
-                                <span class="truncate"><strong>Procedencia:</strong> ${paciente.direccion || '<span class="text-slate-400 italic">No especificada</span>'}</span>
-                            </div>
-                            ${paciente.telefono && paciente.telefono.trim() !== "" ? `
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="phone" class="w-4 h-4 text-slate-400"></i>
-                                <span><strong>Contacto:</strong> ${paciente.telefono}</span>
+                            
+                            ${paciente.area ? `
+                            <div class="flex items-center gap-2 text-xs text-blue-700 bg-blue-50/50 px-2 py-1 rounded-md">
+                                <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-500"></i>
+                                <span><strong>Área:</strong> ${paciente.area}</span>
                             </div>` : ''}
+
+                            ${paciente.ubicacion_cama ? `
+                            <div class="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50/50 px-2 py-1 rounded-md">
+                                <i data-lucide="bed" class="w-3.5 h-3.5 text-emerald-500"></i>
+                                <span><strong>Ubicación:</strong> ${paciente.ubicacion_cama}</span>
+                            </div>` : ''}
+
+                            <div class="flex items-center gap-2 pt-1 text-xs">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
+                                <span class="truncate"><strong>Procedencia:</strong> ${paciente.procedencia || 'No especificada'}</span>
+                            </div>
                         </div>
                     </div>
                     ${obsHTML}
