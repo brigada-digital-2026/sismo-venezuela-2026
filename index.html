@@ -29,11 +29,10 @@
         <div id="statusBanner" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-6 shadow-sm flex items-start gap-3 transition-all">
             <i id="statusIcon" data-lucide="refresh-cw" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 animate-spin"></i>
             <p id="statusText" class="text-sm text-blue-700 font-medium">
-                Sincronizando base de datos central de 3.688 personas en tiempo real... Por favor espere.
+                Sincronizando base de datos central de personas en tiempo real... Por favor espere.
             </p>
         </div>
 
-        <!-- NOTA DE EXENCIÓN DE RESPONSABILIDAD / LIMITACIÓN DE DATOS -->
         <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl mb-8 shadow-sm flex items-start gap-3">
             <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
             <div class="text-sm text-amber-800 space-y-1">
@@ -91,10 +90,17 @@
 
     </main>
 
-    <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-xs sm:text-sm mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center space-y-1">
-            <p class="font-semibold text-slate-300">Infraestructura Tecnológica de Contingencia Civil.</p>
-            <p>Los datos se analizan dinámicamente desde la matriz JSON distribuida de forma asíncrona.</p>
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs sm:text-sm mt-auto">
+        <div class="max-w-4xl mx-auto px-4 text-center space-y-3">
+            <p class="font-bold tracking-wide uppercase text-slate-300 text-[11px] sm:text-xs">
+                Nota de Transparencia del Registro Informativo
+            </p>
+            <p class="leading-relaxed text-slate-400 max-w-3xl mx-auto">
+                Los datos expuestos en esta herramienta han sido recopilados de manera voluntaria y solidaria por colaboradores en terreno. La información proviene de listados manuscritos en las carteleras de los hospitales, capturas e imágenes difundidas en redes sociales (Facebook) y grupos de mensajería (WhatsApp). Debido a la naturaleza de la contingencia y a la transcripción manual de registros de emergencia, <strong>pueden existir discrepancias, errores en la escritura de nombres o datos incompletos.</strong>
+            </p>
+            <div class="pt-2 border-t border-slate-800/60 text-[11px] text-slate-500 font-mono">
+                Infraestructura Tecnológica de Contingencia Civil 2026.
+            </div>
         </div>
     </footer>
 
@@ -208,7 +214,6 @@
             }
             noResults.classList.add('hidden');
 
-            // Renderizamos un fragmento controlado para no saturar el DOM del móvil con 3600 elementos de golpe
             const itemsAMostrar = lista.slice(0, 150);
             if (lista.length > 150) {
                 counter.textContent += ` (Se muestran los primeros 150 resultados por velocidad)`;
@@ -228,16 +233,16 @@
 
                 card.innerHTML = `
                     <div>
-                        <div class="flex justify-between items-start gap-2 mb-3">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 truncate max-w-[80%]">
-                                <i data-lucide="hospital" class="w-3.5 h-3.5 flex-shrink-0"></i> ${paciente.hospital}
+                        <div class="mb-3 flex justify-between items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 w-full justify-start overflow-hidden text-ellipsis whitespace-nowrap">
+                                <i data-lucide="hospital" class="w-3.5 h-3.5 flex-shrink-0"></i> 
+                                <span class="truncate">${paciente.hospital}</span>
                             </span>
-                            <span class="text-xs text-slate-400 font-mono flex-shrink-0">F: ${paciente.fecha || 's/f'}</span>
                         </div>
                         
-                        <h3 class="text-base font-bold text-slate-900 tracking-tight uppercase">${paciente.nombre}</h3>
+                        <h3 class="text-base font-bold text-slate-900 tracking-tight uppercase mb-2">${paciente.nombre}</h3>
                         
-                        <div class="mt-3 space-y-1.5 text-sm text-slate-600">
+                        <div class="space-y-1.5 text-sm text-slate-600">
                             <div class="grid grid-cols-2 gap-2 border-b border-slate-100 pb-1.5 text-xs font-mono text-slate-500">
                                 <div><strong>CI:</strong> ${paciente.cedula || 'N/A'}</div>
                                 <div><strong>EDAD/SEXO:</strong> ${paciente.edad || 's/e'} / ${paciente.sexo || 's/s'}</div>
@@ -255,9 +260,15 @@
                                 <span><strong>Ubicación:</strong> ${paciente.ubicacion_cama}</span>
                             </div>` : ''}
 
-                            <div class="flex items-center gap-2 pt-1 text-xs">
-                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
-                                <span class="truncate"><strong>Procedencia:</strong> ${paciente.procedencia || 'No especificada'}</span>
+                            <div class="grid grid-cols-2 gap-2 pt-1 text-xs text-slate-500 border-t border-slate-50 mt-2">
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
+                                    <span class="truncate"><strong>Procedencia:</strong> ${paciente.procedencia || 'No esp.'}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 justify-end text-right">
+                                    <i data-lucide="calendar-days" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
+                                    <span><strong>Registrado:</strong> ${paciente.fecha || 's/f'}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
